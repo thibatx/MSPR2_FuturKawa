@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+  // Client dédié à cette app (évite les conflits avec les autres schémas du monorepo).
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Schéma traduit depuis MSPR_2.sql (MySQL) vers PostgreSQL/Prisma.
+
+model Exploitation {
+  id        BigInt     @id @default(autoincrement()) @map("id_exploitation")
+  nom       String     @db.VarChar(100)
+  entrepots Entrepot[]
+
+  @@map("exploitations")
+}
+
+model Entrepot {
+  id             BigInt        @id @default(autoincrement()) @map("id_entrepot")
+  idExploitation BigInt?       @map("id_exploitation")
+  nom            String?       @db.VarChar(100)
+  exploitation   Exploitation? @relation(fields: [idExploitation], references: [id], onDelete: SetNull)
+  lots           Lot[]
+  mesures        Mesure[]
+
+  @@map("entrepots")
+}
+
+model Lot {
+  id           BigInt    @id @default(autoincrement()) @map("id_lot")
+  idEntrepot   BigInt?   @map("id_entrepot")
+  dateStockage DateTime  @default(now()) @map("date_stockage")
+  statut       String?   @db.VarChar(20)
+  entrepot     Entrepot? @relation(fields: [idEntrepot], references: [id], onDelete: SetNull)
+
+  @@map("lots")
+}
+
+model Mesure {
+  id          Int       @id @default(autoincrement()) @map("id_mesure")
+  idEntrepot  BigInt?   @map("id_entrepot")
+  temperature Float?
+  humidite    Float?
+  statut      String?   @db.VarChar(20)
+  timestamp   DateTime  @default(now())
+  entrepot    Entrepot? @relation(fields: [idEntrepot], references: [id], onDelete: SetNull)
+
+  @@map("mesures")
+}

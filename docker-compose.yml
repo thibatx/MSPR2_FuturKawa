@@ -1,5 +1,11 @@
 # Base de données Postgres pour le dev.
 # Lancer : docker compose up -d   (ou npm run db:up)
+# Un seul conteneur héberge 3 bases :
+#   - FuturKawa           (Siège  -> API_Siege)
+#   - futurkawa_colombia  (API_Colombia)
+#   - futurkawa_brazil    (API_Brazil)
+# Les deux bases pays sont créées par docker/init/01-create-databases.sql
+# au premier démarrage (volume vide).
 services:
   postgres:
     image: postgres:16-alpine
@@ -13,6 +19,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./docker/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U root"]
       interval: 5s
