@@ -1,6 +1,6 @@
 'use client'
 
-import { FormEvent, useCallback, useEffect, useState } from 'react'
+import { FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { User } from '@app/types'
@@ -29,6 +29,22 @@ export default function AdminUsersPage() {
   // Suppression d'un utilisateur (avec modale de confirmation)
   const [userToDelete, setUserToDelete] = useState<User | null>(null)
   const [deleting, setDeleting] = useState(false)
+
+  // Menu de profil dans le header
+  const [profileOpen, setProfileOpen] = useState(false)
+  const profileRef = useRef<HTMLDivElement>(null)
+
+  // Fermer le menu profil au clic en dehors
+  useEffect(() => {
+    if (!profileOpen) return
+    const onClick = (e: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [profileOpen])
 
   // Garde d'accès : connecté + admin uniquement
   useEffect(() => {
@@ -119,11 +135,49 @@ export default function AdminUsersPage() {
     <div className="flex min-h-screen">
       {/* Sidebar */}
       <aside className="hidden w-60 flex-col border-r border-slate-200 bg-white px-4 py-6 md:flex">
-        <div className="mb-8 flex items-center gap-2 px-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">
-            F
-          </div>
-          <span className="font-semibold text-slate-900">FuturKawa</span>
+        <div className="relative mb-8" ref={profileRef}>
+          <button
+            onClick={() => setProfileOpen((v) => !v)}
+            aria-haspopup="menu"
+            aria-expanded={profileOpen}
+            className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition hover:bg-slate-50"
+          >
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold uppercase text-brand-700">
+              {(user.name ?? user.email).slice(0, 2)}
+            </div>
+            <span className="truncate font-semibold text-slate-900">
+              {user.name ?? user.email}
+            </span>
+          </button>
+
+          {profileOpen && (
+            <div
+              role="menu"
+              className="absolute left-0 right-0 z-50 mt-1 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg"
+            >
+              <Link
+                href="/profile"
+                onClick={() => setProfileOpen(false)}
+                className="block border-b border-slate-100 px-3 py-2 transition hover:bg-slate-50"
+              >
+                <p className="truncate text-sm font-medium text-slate-900">
+                  {user.name ?? '—'}
+                </p>
+                <p className="truncate text-xs text-slate-500">{user.email}</p>
+              </Link>
+              <button
+                role="menuitem"
+                onClick={() => {
+                  setProfileOpen(false)
+                  logout()
+                  router.replace('/login')
+                }}
+                className="block w-full px-3 py-2 text-left text-sm font-medium text-red-600 transition hover:bg-red-50"
+              >
+                Déconnexion
+              </button>
+            </div>
+          )}
         </div>
         <nav className="space-y-1">
           <Link
@@ -140,19 +194,6 @@ export default function AdminUsersPage() {
 
       {/* Main */}
       <div className="flex flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4">
-          <h1 className="text-lg font-semibold text-slate-900">Utilisateurs</h1>
-          <button
-            onClick={() => {
-              logout()
-              router.replace('/login')
-            }}
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-          >
-            Déconnexion
-          </button>
-        </header>
-
         <main className="flex-1 space-y-6 p-6">
           {/* Création d'un utilisateur */}
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
