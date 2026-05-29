@@ -1,5 +1,5 @@
 {
-  "name": "app-template",
+  "name": "futurkawa",
   "private": true,
   "workspaces": [
     "apps/*",

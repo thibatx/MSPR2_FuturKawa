@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 
@@ -37,14 +38,22 @@ export default function DashboardPage() {
       <aside className="hidden w-60 flex-col border-r border-slate-200 bg-white px-4 py-6 md:flex">
         <div className="mb-8 flex items-center gap-2 px-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">
-            A
+            F
           </div>
-          <span className="font-semibold text-slate-900">App Template</span>
+          <span className="font-semibold text-slate-900">FuturKawa</span>
         </div>
         <nav className="space-y-1">
           <span className="flex items-center rounded-lg bg-brand-50 px-3 py-2 text-sm font-medium text-brand-700">
             Tableau de bord
           </span>
+          {user.role === 'ADMIN' && (
+            <Link
+              href="/admin/users"
+              className="flex items-center rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+            >
+              Utilisateurs
+            </Link>
+          )}
         </nav>
       </aside>
 

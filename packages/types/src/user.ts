@@ -7,3 +7,10 @@ export type User = {
   role: Role
   createdAt: string
 }
+
+export type CreateUserPayload = {
+  email: string
+  password: string
+  name?: string
+  role?: Role
+}

@@ -1,7 +1,9 @@
 import type {
   AuthResponse,
+  CreateUserPayload,
   LoginPayload,
   RegisterPayload,
+  Role,
   User,
 } from '@app/types'
 
@@ -60,4 +62,21 @@ export const api = {
       body: JSON.stringify(payload),
     }),
   me: () => request<User>('/auth/me'),
+
+  // --- Administration (réservé aux admins) ---
+  listUsers: () => request<User[]>('/users'),
+  createUser: (payload: CreateUserPayload) =>
+    request<User>('/users', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  setUserRole: (id: string, role: Role) =>
+    request<User>(`/users/${id}/role`, {
+      method: 'PATCH',
+      body: JSON.stringify({ role }),
+    }),
+  deleteUser: (id: string) =>
+    request<{ success: boolean }>(`/users/${id}`, {
+      method: 'DELETE',
+    }),
 }
