@@ -1,33 +1,17 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import Link from 'next/link'
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
+import { Sidebar } from '@/components/Sidebar'
 
 export default function DashboardPage() {
-  const { user, loading, logout } = useAuth()
+  const { user, loading } = useAuth()
   const router = useRouter()
-
-  // Menu de profil dans le header
-  const [profileOpen, setProfileOpen] = useState(false)
-  const profileRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!loading && !user) router.replace('/login')
   }, [user, loading, router])
-
-  // Fermer le menu profil au clic en dehors
-  useEffect(() => {
-    if (!profileOpen) return
-    const onClick = (e: MouseEvent) => {
-      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
-        setProfileOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', onClick)
-    return () => document.removeEventListener('mousedown', onClick)
-  }, [profileOpen])
 
   if (loading || !user) {
     return (
@@ -37,74 +21,18 @@ export default function DashboardPage() {
     )
   }
 
-  const initials = (user.name ?? user.email).slice(0, 2).toUpperCase()
-
   return (
     <div className="flex min-h-screen">
-      {/* Sidebar */}
-      <aside className="hidden w-60 flex-col border-r border-slate-200 bg-white px-4 py-6 md:flex">
-        <div className="relative mb-8" ref={profileRef}>
-          <button
-            onClick={() => setProfileOpen((v) => !v)}
-            aria-haspopup="menu"
-            aria-expanded={profileOpen}
-            className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition hover:bg-slate-50"
-          >
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-700">
-              {initials}
-            </div>
-            <span className="truncate font-semibold text-slate-900">
-              {user.name ?? user.email}
-            </span>
-          </button>
-
-          {profileOpen && (
-            <div
-              role="menu"
-              className="absolute left-0 right-0 z-50 mt-1 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg"
-            >
-              <Link
-                href="/profile"
-                onClick={() => setProfileOpen(false)}
-                className="block border-b border-slate-100 px-3 py-2 transition hover:bg-slate-50"
-              >
-                <p className="truncate text-sm font-medium text-slate-900">
-                  {user.name ?? '—'}
-                </p>
-                <p className="truncate text-xs text-slate-500">{user.email}</p>
-              </Link>
-              <button
-                role="menuitem"
-                onClick={() => {
-                  setProfileOpen(false)
-                  logout()
-                  router.replace('/login')
-                }}
-                className="block w-full px-3 py-2 text-left text-sm font-medium text-red-600 transition hover:bg-red-50"
-              >
-                Déconnexion
-              </button>
-            </div>
-          )}
-        </div>
-        <nav className="space-y-1">
-          <span className="flex items-center rounded-lg bg-brand-50 px-3 py-2 text-sm font-medium text-brand-700">
-            Tableau de bord
-          </span>
-          {user.role === 'ADMIN' && (
-            <Link
-              href="/admin/users"
-              className="flex items-center rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
-            >
-              Utilisateurs
-            </Link>
-          )}
-        </nav>
-      </aside>
+      <Sidebar />
 
       {/* Main */}
       <div className="flex flex-1 flex-col">
-        <main className="flex-1 p-6"></main>
+        <main className="flex-1 p-6">
+          <h1 className="text-2xl font-semibold text-slate-900">Tableau de bord</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Bienvenue, {user.name ?? user.email}.
+          </p>
+        </main>
       </div>
     </div>
   )
