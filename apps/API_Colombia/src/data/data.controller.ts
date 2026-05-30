@@ -1,9 +1,23 @@
-import { Controller, Get, ParseIntPipe, Query } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common'
 import { DataService } from './data.service'
+import {
+  CreateExploitationDto,
+  UpdateExploitationDto,
+} from './dto/exploitation.dto'
 
 /**
- * Endpoints en lecture seule, protégés par la clé d'API (voir ApiKeyGuard).
- * Consommés par l'API_Siege pour agréger les données des pays.
+ * Endpoints protégés par la clé d'API (voir ApiKeyGuard).
+ * Consommés par l'API_Siege : lecture des données + CRUD des exploitations.
  */
 @Controller()
 export class DataController {
@@ -12,6 +26,24 @@ export class DataController {
   @Get('exploitations')
   exploitations() {
     return this.data.exploitations()
+  }
+
+  @Post('exploitations')
+  createExploitation(@Body() dto: CreateExploitationDto) {
+    return this.data.createExploitation(dto.nom)
+  }
+
+  @Patch('exploitations/:id')
+  updateExploitation(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateExploitationDto,
+  ) {
+    return this.data.updateExploitation(id, dto.nom)
+  }
+
+  @Delete('exploitations/:id')
+  deleteExploitation(@Param('id', ParseIntPipe) id: number) {
+    return this.data.deleteExploitation(id)
   }
 
   @Get('entrepots')

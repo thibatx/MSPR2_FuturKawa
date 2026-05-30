@@ -4,6 +4,8 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { Sidebar } from '@/components/Sidebar'
+import { CountryMap } from '@/components/CountryMap'
+import { CountrySelect } from '@/components/CountrySelect'
 
 export default function DashboardPage() {
   const { user, loading } = useAuth()
@@ -22,16 +24,19 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       <Sidebar />
 
       {/* Main */}
-      <div className="flex flex-1 flex-col">
-        <main className="flex-1 p-6">
-          <h1 className="text-2xl font-semibold text-slate-900">Tableau de bord</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Bienvenue, {user.name ?? user.email}.
-          </p>
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <main className="relative flex flex-1 flex-col overflow-hidden p-6">
+          {/* Dropdown pays en haut à droite, synchronisé avec la page Exploitations */}
+          <div className="absolute right-6 top-6 z-20 w-52">
+            <CountrySelect />
+          </div>
+          <div className="min-h-0 flex-1">
+            <CountryMap />
+          </div>
         </main>
       </div>
     </div>

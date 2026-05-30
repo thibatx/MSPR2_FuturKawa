@@ -72,8 +72,53 @@ export class CountriesService {
     return res.json() as Promise<T>
   }
 
+  /** Appel d'écriture (POST/PATCH/DELETE) authentifié vers l'API d'un pays. */
+  async send<T>(
+    country: string,
+    path: string,
+    method: 'POST' | 'PATCH' | 'DELETE',
+    body?: unknown,
+  ): Promise<T> {
+    const { baseUrl, apiKey } = this.resolve(country)
+
+    let res: Response
+    try {
+      res = await fetch(`${baseUrl}${path}`, {
+        method,
+        headers: {
+          'x-api-key': apiKey,
+          ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+        },
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+      })
+    } catch (e) {
+      throw new BadGatewayException(
+        `API ${country} injoignable (${(e as Error).message})`,
+      )
+    }
+
+    if (!res.ok) {
+      throw new BadGatewayException(
+        `API ${country} a répondu ${res.status} sur ${path}`,
+      )
+    }
+    return res.json() as Promise<T>
+  }
+
   exploitations(country: string) {
     return this.fetch(country, '/exploitations')
+  }
+
+  createExploitation(country: string, nom: string) {
+    return this.send(country, '/exploitations', 'POST', { nom })
+  }
+
+  updateExploitation(country: string, id: number, nom: string) {
+    return this.send(country, `/exploitations/${id}`, 'PATCH', { nom })
+  }
+
+  deleteExploitation(country: string, id: number) {
+    return this.send(country, `/exploitations/${id}`, 'DELETE')
   }
 
   entrepots(country: string) {

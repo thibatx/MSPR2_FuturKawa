@@ -16,6 +16,22 @@ const Icon = {
       <rect x="3" y="16" width="7" height="5" rx="1.5" />
     </svg>
   ),
+  Exploitations: ({ className }: IconProps) => (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M7 20h10" />
+      <path d="M12 20V8" />
+      <path d="M12 8c0-3 2-5 5-5 0 3-2 5-5 5Z" />
+      <path d="M12 12c0-3-2-5-5-5 0 3 2 5 5 5Z" />
+    </svg>
+  ),
+  Entrepots: ({ className }: IconProps) => (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 21V8l9-5 9 5v13" />
+      <path d="M3 21h18" />
+      <rect x="9" y="13" width="6" height="8" />
+      <path d="M9 9h6" />
+    </svg>
+  ),
   Users: ({ className }: IconProps) => (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
@@ -64,6 +80,8 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { href: '/dashboard', label: 'Tableau de bord', icon: Icon.Dashboard },
+  { href: '/exploitations', label: 'Exploitations', icon: Icon.Exploitations },
+  { href: '/entrepots', label: 'Entrepôts', icon: Icon.Entrepots },
   { href: '/admin/users', label: 'Utilisateurs', icon: Icon.Users, adminOnly: true },
 ]
 
@@ -75,12 +93,46 @@ export function Sidebar() {
 
   if (!user) return null
 
-  const items = navItems.filter((item) => !item.adminOnly || user.role === 'ADMIN')
+  const isAdmin = user.role === 'ADMIN'
+  const mainItems = navItems.filter((item) => !item.adminOnly)
+  const adminItems = navItems.filter((item) => item.adminOnly && isAdmin)
   const initials = (user.name ?? user.email).slice(0, 2).toUpperCase()
 
   const handleLogout = () => {
     logout()
     router.replace('/login')
+  }
+
+  const renderLink = (item: NavItem) => {
+    const IconCmp = item.icon
+    const isActive =
+      item.href === '/dashboard'
+        ? pathname === item.href
+        : pathname.startsWith(item.href)
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        onClick={() => setMobileOpen(false)}
+        className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
+          isActive
+            ? 'bg-brand-50 text-brand-700'
+            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+        }`}
+      >
+        <span
+          className={`absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-brand-600 transition-opacity duration-200 ${
+            isActive ? 'opacity-100' : 'opacity-0'
+          }`}
+        />
+        <IconCmp
+          className={`h-[18px] w-[18px] shrink-0 transition-colors duration-200 ${
+            isActive ? 'text-brand-600' : 'text-slate-400 group-hover:text-slate-600'
+          }`}
+        />
+        {item.label}
+      </Link>
+    )
   }
 
   return (
@@ -131,38 +183,15 @@ export function Sidebar() {
 
         {/* Navigation */}
         <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-          {items.map((item) => {
-            const IconCmp = item.icon
-            const isActive =
-              item.href === '/dashboard'
-                ? pathname === item.href
-                : pathname.startsWith(item.href)
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
-                  isActive
-                    ? 'bg-brand-50 text-brand-700'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                }`}
-              >
-                <span
-                  className={`absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-brand-600 transition-opacity duration-200 ${
-                    isActive ? 'opacity-100' : 'opacity-0'
-                  }`}
-                />
-                <IconCmp
-                  className={`h-[18px] w-[18px] shrink-0 transition-colors duration-200 ${
-                    isActive ? 'text-brand-600' : 'text-slate-400 group-hover:text-slate-600'
-                  }`}
-                />
-                {item.label}
-              </Link>
-            )
-          })}
+          {mainItems.map(renderLink)}
         </nav>
+
+        {/* Section admin, ancrée en bas au-dessus du profil */}
+        {adminItems.length > 0 && (
+          <nav className="space-y-1 border-t border-slate-100 px-3 py-3">
+            {adminItems.map(renderLink)}
+          </nav>
+        )}
 
         {/* Carte utilisateur + déconnexion */}
         <div className="border-t border-slate-100 p-3">

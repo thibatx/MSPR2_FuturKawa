@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 
 /**
- * Accès en lecture seule aux données du pays.
- * Les pays remontent leurs données ; le pilotage/écriture reste au Siège.
+ * Accès aux données du pays.
+ * La lecture est ouverte à l'API_Siege ; les écritures (CRUD exploitations)
+ * sont pilotées par le Siège et restreintes aux administrateurs en amont.
  */
 @Injectable()
 export class DataService {
@@ -14,6 +15,37 @@ export class DataService {
       orderBy: { id: 'asc' },
       include: { entrepots: true },
     })
+  }
+
+  createExploitation(nom: string) {
+    return this.prisma.exploitation.create({
+      data: { nom },
+      include: { entrepots: true },
+    })
+  }
+
+  async updateExploitation(id: number, nom: string) {
+    await this.ensureExploitation(id)
+    return this.prisma.exploitation.update({
+      where: { id: BigInt(id) },
+      data: { nom },
+      include: { entrepots: true },
+    })
+  }
+
+  async deleteExploitation(id: number) {
+    await this.ensureExploitation(id)
+    await this.prisma.exploitation.delete({ where: { id: BigInt(id) } })
+    return { success: true }
+  }
+
+  private async ensureExploitation(id: number) {
+    const found = await this.prisma.exploitation.findUnique({
+      where: { id: BigInt(id) },
+    })
+    if (!found) {
+      throw new NotFoundException(`Exploitation ${id} introuvable`)
+    }
   }
 
   entrepots() {
